@@ -51,10 +51,10 @@ jobs:
 
     - name: Compilar APK com Buildozer
       env:
-        # Corrige problemas de codificação e aceita termos automaticamente
         HOME: ${{ github.workspace }}
       run: |
-        buildozer -v android debug
+        # Aceita automaticamente os prompts do Buildozer/SDK usando yes
+        yes | buildozer -v android debug
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
