@@ -2,37 +2,55 @@ import os
 import subprocess
 import sys
 
-NOME_REPOSITORIO = "meu-navegador-apk"
+PROJECT_DIR = "/storage/emulated/0/projeto_apk"
+REPO_NAME = "navegador-apk-v2"
 
-def rodar_comando(comando):
-    print(f"-> Executando: {comando}")
-    resultado = subprocess.run(comando, shell=True, text=True)
-    if resultado.returncode != 0:
-        print(f"Erro ao executar: {comando}")
-        sys.exit(1)
+def run_cmd(command, cwd=PROJECT_DIR):
+    print(f"-> Executando: {command}")
+    result = subprocess.run(command, shell=True, cwd=cwd, text=True, capture_output=True)
+    if result.returncode != 0:
+        print(f"Erro: {result.stderr.strip()}")
+    else:
+        if result.stdout.strip():
+            print(result.stdout.strip())
+    return result.returncode == 0
 
-def criar_buildozer_spec():
-    content = """[app]
-title = Navegador Automacao
-package.name = navegadorautomacao
-package.domain = org.automacao
+def main():
+    print("🚀 Iniciando automação completa para o projeto Android...")
+    
+    if not os.path.exists(PROJECT_DIR):
+        os.makedirs(PROJECT_DIR, exist_ok=True)
+        print(f"✔ Pasta criada: {PROJECT_DIR}")
+
+    os.chdir(PROJECT_DIR)
+
+    # 1. Verificar se o buildozer.spec existe, senão criar um básico
+    spec_path = os.path.join(PROJECT_DIR, "buildozer.spec")
+    if not os.path.exists(spec_path):
+        print("📦 Criando arquivo buildozer.spec padrão...")
+        with open(spec_path, "w", encoding="utf-8") as f:
+            f.write("""[app]
+title = Navegador
+package.name = navegador
+package.domain = org.brancofx
 source.include_exts = py,png,jpg,kv,atlas
-source.main = navegador.py
+source.dir = .
+version = 1.0
 requirements = python3,kivy
-version = 0.1
-android.permissions = INTERNET
 orientation = portrait
+fullscreen = 0
+android.permissions = INTERNET
+""")
+        print("✔ Arquivo buildozer.spec criado com sucesso!")
 
-[buildozer]
-log_level = 2
-"""
-    with open("buildozer.spec", "w", encoding="utf-8") as f:
-        f.write(content)
-    print("✔ Arquivo buildozer.spec criado com sucesso!")
-
-def criar_workflow_github():
-    os.makedirs(".github/workflows", exist_ok=True)
-    content = """name: Compilar APK Android
+    # 2. Verificar se o workflow do GitHub Actions existe
+    workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
+    workflow_path = os.path.join(workflow_dir, "build.yml")
+    if not os.path.exists(workflow_path):
+        os.makedirs(workflow_dir, exist_ok=True)
+        print("📦 Criando configuração do GitHub Actions...")
+        with open(workflow_path, "w", encoding="utf-8") as f:
+            f.write("""name: Compilar APK Android
 
 on:
   workflow_dispatch:
@@ -41,56 +59,100 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    
+    - name: Set up Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
-    - name: Dependencias do Sistema
+
+    - name: Dependências do Sistema
       run: |
+        sudo dpkg --add-architecture i386
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-    - name: Compilar com Buildozer
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          zip \
+          unzip \
+          wget \
+          curl \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5:i386 \
+          libstdc++6:i386 \
+          libz1:i386 \
+          libffi-dev \
+          libssl-dev
+
+    - name: Instalar Buildozer e Dependências Python
       run: |
-        pip install --upgrade pip cython buildozer
-        buildozer -v android debug
+        python -m pip install --upgrade pip
+        pip install --upgrade cython virtualenv
+        pip install --upgrade buildozer
+
+    - name: Compilar APK com Buildozer
+      env:
+        HOME: ${{ github.workspace }}
+      run: |
+        buildozer -v --debug android debug
+
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
       with:
         name: meu-aplicativo-apk
         path: bin/*.apk
-"""
-    with open(".github/workflows/build.yml", "w", encoding="utf-8") as f:
-        f.write(content)
-    print("✔ Configuração do GitHub Actions criada com sucesso!")
+""")
+        print("✔ Configuração do GitHub Actions criada com sucesso!")
 
-def main():
-    if not os.path.exists("navegador.py"):
-        print("❌ Erro: O arquivo 'navegador.py' não foi encontrado nesta pasta!")
-        print("Certifique-se de que o 'navegador.py' está na mesma pasta antes de rodar.")
-        return
+    # 3. Inicializar Git localmente se necessário
+    if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
+        run_cmd("git init")
+        run_cmd("git branch -M main")
 
-    print("🚀 Iniciando automação completa para gerar o APK...")
-    criar_buildozer_spec()
-    criar_workflow_github()
+    # 4. Criar repositório no GitHub via GH CLI se não existir
+    print("🌐 Verificando repositório no GitHub...")
+    repo_check = subprocess.run(f"gh repo view brancofx/{REPO_NAME}", shell=True, capture_output=True)
+    if repo_check.returncode != 0:
+        print(f"📦 Criando repositório remoto '{REPO_NAME}'...")
+        run_cmd(f"gh repo create {REPO_NAME} --public --source=. --remote=origin")
+    else:
+        print("✔ Repositório remoto já existe. Vinculando...")
+        run_cmd(f"git remote remove origin 2>/dev/null || true")
+        run_cmd(f"git remote add origin https://github.com/brancofx/{REPO_NAME}.git")
 
-    if not os.path.exists(".git"):
-        rodar_comando("git init")
-        rodar_comando("git branch -M main")
+    # 5. Commit e Push dos arquivos
+    run_cmd("git add .")
+    run_cmd('git commit -m "Atualizacao automatica do projeto via script Python" || echo "Nada para commitar"')
+    
+    print("🚀 Enviando código para o GitHub...")
+    if not run_cmd("git push -u origin main --force"):
+        run_cmd("git push -u origin master --force")
 
-    print("📦 Criando o repositório no GitHub via API...")
-    subprocess.run(f"gh repo create {NOME_REPOSITORIO} --public --confirm", shell=True)
-
-    rodar_comando("git add .")
-    rodar_comando('git commit -m "Automacao de geracao de APK"')
-    subprocess.run(f"gh repo set-default {NOME_REPOSITORIO}", shell=True)
-    rodar_comando("git push -u origin main --force")
-
-    print("\n🎉 Tudo pronto! Os arquivos foram enviados e o APK está sendo gerado na nuvem.")
-    print("💡 Para acompanhar o andamento em tempo real direto do terminal, digite:")
-    print("   gh run watch")
+    print("\n" + "="*40)
+    print("🎯 O que você deseja fazer agora?")
+    print("1. Apenas publicar o código no GitHub")
+    print("2. Publicar e ACOMPANHAR a geração do APK na nuvem (GitHub Actions)")
+    print("="*40)
+    
+    opcao = input("Digite o número da sua escolha (1 ou 2): ").strip()
+    
+    if opcao == "2":
+        print("\n⏳ Abrindo monitoramento do GitHub Actions...")
+        print("Dica: Pressione Ctrl+C para sair do monitoramento a qualquer momento.")
+        os.system("gh run watch")
+    else:
+        print("\n✔ Processo concluído! Código publicado com sucesso no GitHub.")
 
 if __name__ == "__main__":
     main()
-
