@@ -27,7 +27,6 @@ def processar_arquivos_zip():
     for arquivo_zip in arquivos_zip:
         caminho_zip = os.path.join(PROJECT_DIR, arquivo_zip)
         print(f"📦 Encontrado o arquivo ZIP: {arquivo_zip}. Lendo e descompactando...")
-        
         try:
             with zipfile.ZipFile(caminho_zip, 'r') as zip_ref:
                 zip_ref.extractall(PROJECT_DIR)
@@ -47,33 +46,39 @@ def main():
     # 1. Identificar, ler e descompactar arquivos ZIP automaticamente
     processar_arquivos_zip()
 
-    # 2. Garantir a existência do buildozer.spec
+    # 2. Garantir a existência de um buildozer.spec otimizado e completo
     spec_path = os.path.join(PROJECT_DIR, "buildozer.spec")
-    if not os.path.exists(spec_path):
-        print("📦 Criando arquivo buildozer.spec padrão...")
-        with open(spec_path, "w", encoding="utf-8") as f:
-            f.write("""[app]
+    print("📦 Atualizando/Criando arquivo buildozer.spec otimizado...")
+    with open(spec_path, "w", encoding="utf-8") as f:
+        f.write("""[app]
 title = Navegador
 package.name = navegador
 package.domain = org.brancofx
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv,atlas,zip
 source.dir = .
 version = 1.0
-requirements = python3,kivy
+requirements = python3,kivy,android,certifi,urllib3
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET
-""")
-        print("✔ Arquivo buildozer.spec criado com sucesso!")
+android.api = 33
+android.minapi = 21
+android.ndk = 25b
+android.accept_sdk_license = True
 
-    # 3. Garantir a existência do workflow do GitHub Actions
+[buildozer]
+log_level = 2
+warn_on_root = 1
+""")
+    print("✔ Arquivo buildozer.spec configurado com sucesso!")
+
+    # 3. Garantir o workflow otimizado do GitHub Actions
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
-    if not os.path.exists(workflow_path):
-        os.makedirs(workflow_dir, exist_ok=True)
-        print("📦 Criando configuração otimizada do GitHub Actions...")
-        with open(workflow_path, "w", encoding="utf-8") as f:
-            f.write("""name: Compilar APK Android
+    os.makedirs(workflow_dir, exist_ok=True)
+    
+    with open(workflow_path, "w", encoding="utf-8") as f:
+        f.write("""name: Compilar APK Android
 
 on:
   workflow_dispatch:
@@ -128,7 +133,7 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        buildozer -v --debug android debug
+        buildozer -v android debug
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
@@ -136,9 +141,9 @@ jobs:
         name: meu-aplicativo-apk
         path: bin/*.apk
 """)
-        print("✔ Configuração do GitHub Actions criada com sucesso!")
+    print("✔ Configuração do GitHub Actions atualizada!")
 
-    # 4. Inicializar Git e configurar repositório remoto
+    # 4. Git e Repositório
     if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
         run_cmd("git init")
         run_cmd("git branch -M main")
@@ -147,25 +152,18 @@ jobs:
     run_cmd(f"git remote remove origin 2>/dev/null || true")
     run_cmd(f"git remote add origin https://github.com/brancofx/{REPO_NAME}.git")
 
-    # 5. Adicionar, commitar e enviar arquivos
+    # 5. Envio das alterações
     run_cmd("git add .")
-    run_cmd('git commit -m "Automacao completa via script Python com leitura de ZIP" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Ajuste completo no buildozer.spec para correcao do build" || echo "Nada para commitar"')
     
-    print("🚀 Enviando código para o GitHub...")
+    print("🚀 Enviando código atualizado para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Processo finalizado!")
-    print("Deseja acompanhar a compilação do APK na nuvem agora?")
+    print("🎯 Tudo enviado! Acompanhando o novo build...")
     print("="*40)
-    
-    opcao = input("Acompanhar build no GitHub Actions? (s/n): ").strip().lower()
-    if opcao == 's':
-        print("\n⏳ Abrindo monitoramento do GitHub Actions...")
-        os.system("gh run watch")
-    else:
-        print("\n✔ Tudo pronto! Você pode acompanhar o progresso no GitHub a qualquer momento.")
+    os.system("gh run watch")
 
 if __name__ == "__main__":
     main()
