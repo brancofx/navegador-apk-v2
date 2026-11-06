@@ -35,7 +35,7 @@ def processar_arquivos_zip():
             print(f"⚠️ Erro ao descompactar o arquivo {arquivo_zip}: {e}")
 
 def main():
-    print("🚀 Iniciando automação inteligente do projeto Android...")
+    print("🚀 Iniciando automação com rastreamento detalhado de erros...")
     
     if not os.path.exists(PROJECT_DIR):
         os.makedirs(PROJECT_DIR, exist_ok=True)
@@ -43,12 +43,12 @@ def main():
 
     os.chdir(PROJECT_DIR)
 
-    # 1. Identificar, ler e descompactar arquivos ZIP automaticamente
+    # 1. Identificar, ler e descompactar arquivos ZIP automaticamente[span_2](start_span)[span_2](end_span)
     processar_arquivos_zip()
 
-    # 2. Garantir a existência de um buildozer.spec otimizado e completo
+    # 2. Configurar o buildozer.spec genérico abrangente (funciona para main.py ou navegador.py)
     spec_path = os.path.join(PROJECT_DIR, "buildozer.spec")
-    print("📦 Atualizando/Criando arquivo buildozer.spec otimizado...")
+    print("📦 Atualizando/Criando arquivo buildozer.spec flexível...")
     with open(spec_path, "w", encoding="utf-8") as f:
         f.write("""[app]
 title = Navegador
@@ -72,7 +72,7 @@ warn_on_root = 1
 """)
     print("✔ Arquivo buildozer.spec configurado com sucesso!")
 
-    # 3. Garantir o workflow otimizado do GitHub Actions
+    # 3. GitHub Actions com captura de erro detalhada no log
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
     os.makedirs(workflow_dir, exist_ok=True)
@@ -133,7 +133,8 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        buildozer -v android debug
+        # Tenta compilar. Se falhar, exibe o log detalhado do Buildozer para diagnóstico
+        buildozer -v android debug || (echo "=== ERRO DETALHADO DO BUILDOZER ===" && cat .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
@@ -141,7 +142,7 @@ jobs:
         name: meu-aplicativo-apk
         path: bin/*.apk
 """)
-    print("✔ Configuração do GitHub Actions atualizada!")
+    print("✔ Configuração do GitHub Actions com rastreamento de erro criada!")
 
     # 4. Git e Repositório
     if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
@@ -154,14 +155,14 @@ jobs:
 
     # 5. Envio das alterações
     run_cmd("git add .")
-    run_cmd('git commit -m "Ajuste completo no buildozer.spec para correcao do build" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Atualizacao com script inteligente e log de erro detalhado" || echo "Nada para commitar"')
     
     print("🚀 Enviando código atualizado para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Tudo enviado! Acompanhando o novo build...")
+    print("🎯 Tudo enviado! Acompanhando a nova compilação...")
     print("="*40)
     os.system("gh run watch")
 
