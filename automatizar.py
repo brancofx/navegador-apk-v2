@@ -2,6 +2,7 @@ import os
 import zipfile
 import subprocess
 import sys
+import time
 
 PROJECT_DIR = "/storage/emulated/0/projeto_apk"
 REPO_NAME = "navegador-apk-v2"
@@ -43,10 +44,10 @@ def main():
 
     os.chdir(PROJECT_DIR)
 
-    # 1. Identificar, ler e descompactar arquivos ZIP automaticamente[span_2](start_span)[span_2](end_span)
+    # 1. Identificar, ler e descompactar arquivos ZIP automaticamente
     processar_arquivos_zip()
 
-    # 2. Configurar o buildozer.spec genérico abrangente (funciona para main.py ou navegador.py)
+    # 2. Configurar o buildozer.spec flexível
     spec_path = os.path.join(PROJECT_DIR, "buildozer.spec")
     print("📦 Atualizando/Criando arquivo buildozer.spec flexível...")
     with open(spec_path, "w", encoding="utf-8") as f:
@@ -133,7 +134,6 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        # Tenta compilar. Se falhar, exibe o log detalhado do Buildozer para diagnóstico
         buildozer -v android debug || (echo "=== ERRO DETALHADO DO BUILDOZER ===" && cat .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
 
     - name: Salvar APK Gerado
@@ -155,15 +155,17 @@ jobs:
 
     # 5. Envio das alterações
     run_cmd("git add .")
-    run_cmd('git commit -m "Atualizacao com script inteligente e log de erro detalhado" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Atualizacao com script inteligente e pausa de inicio" || echo "Nada para commitar"')
     
     print("🚀 Enviando código atualizado para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Tudo enviado! Acompanhando a nova compilação...")
+    print("🎯 Tudo enviado! Aguardando 5 segundos para o GitHub iniciar o build...")
     print("="*40)
+    
+    time.sleep(5)
     os.system("gh run watch")
 
 if __name__ == "__main__":
