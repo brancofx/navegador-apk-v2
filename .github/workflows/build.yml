@@ -7,22 +7,50 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
+
     - name: Dependencias do Sistema
       run: |
+        sudo dpkg --add-architecture i386
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        sudo apt-get install -y \
+          build-arg \
+          git \
+          zip \
+          unzip \
+          wget \
+          curl \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5:i386 \
+          libstdc++6:i386 \
+          libz1:i386 \
+          libffi-dev \
+          libssl-dev
+
     - name: Compilar com Buildozer
       run: |
         pip install --upgrade pip cython buildozer
         buildozer -v android debug
+
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
       with:
         name: meu-aplicativo-apk
         path: bin/*.apk
+
