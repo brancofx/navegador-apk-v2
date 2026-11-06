@@ -36,7 +36,7 @@ def processar_arquivos_zip():
             print(f"⚠️ Erro ao descompactar o arquivo {arquivo_zip}: {e}")
 
 def main():
-    print("🚀 Iniciando automação com rastreamento detalhado de erros...")
+    print("🚀 Iniciando automação com rastreamento inteligente de erros...")
     
     if not os.path.exists(PROJECT_DIR):
         os.makedirs(PROJECT_DIR, exist_ok=True)
@@ -73,7 +73,7 @@ warn_on_root = 1
 """)
     print("✔ Arquivo buildozer.spec configurado com sucesso!")
 
-    # 3. GitHub Actions com captura de erro detalhada no log
+    # 3. GitHub Actions configurado para extrair e imprimir o erro exato no log final
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
     os.makedirs(workflow_dir, exist_ok=True)
@@ -134,7 +134,7 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        buildozer -v android debug || (echo "=== ERRO DETALHADO DO BUILDOZER ===" && cat .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
+        buildozer -v android debug || (echo "=== ERRO ENCONTRADO NO BUILD ===" && tail -n 100 .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
@@ -142,7 +142,7 @@ jobs:
         name: meu-aplicativo-apk
         path: bin/*.apk
 """)
-    print("✔ Configuração do GitHub Actions com rastreamento de erro criada!")
+    print("✔ Configuração do GitHub Actions atualizada com filtro de erros!")
 
     # 4. Git e Repositório
     if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
@@ -155,14 +155,14 @@ jobs:
 
     # 5. Envio das alterações
     run_cmd("git add .")
-    run_cmd('git commit -m "Atualizacao com script inteligente e pausa de inicio" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Atualizacao com extrator de log de erro" || echo "Nada para commitar"')
     
     print("🚀 Enviando código atualizado para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Tudo enviado! Aguardando 5 segundos para o GitHub iniciar o build...")
+    print("🎯 Tudo enviado! Aguardando o GitHub iniciar o build...")
     print("="*40)
     
     time.sleep(5)
