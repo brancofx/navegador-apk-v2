@@ -45,8 +45,10 @@ jobs:
 
     - name: Compilar com Buildozer
       run: |
-        pip install --upgrade pip cython buildozer
-        buildozer -v android debug
+        pip install --upgrade pip cython
+        pip install --upgrade buildozer
+        # Força o Buildozer a rodar aceitando dependências sem interatividade
+        yes | buildozer -v android debug
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
