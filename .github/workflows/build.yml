@@ -54,7 +54,7 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        buildozer -v android debug || (echo "=== ERRO ENCONTRADO NO BUILD ===" && tail -n 100 .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
+        buildozer -v android debug || (echo "=== ERRO EXPANDIDO DO BUILD ===" && tail -n 150 .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4

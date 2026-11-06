@@ -36,7 +36,7 @@ def processar_arquivos_zip():
             print(f"⚠️ Erro ao descompactar o arquivo {arquivo_zip}: {e}")
 
 def main():
-    print("🚀 Iniciando automação com correção para o erro do pip...")
+    print("🚀 Iniciando automação com extrator de erro expandido...")
     
     if not os.path.exists(PROJECT_DIR):
         os.makedirs(PROJECT_DIR, exist_ok=True)
@@ -73,7 +73,7 @@ warn_on_root = 1
 """)
     print("✔ Arquivo buildozer.spec configurado com sucesso!")
 
-    # 3. GitHub Actions com correção de dependências Python
+    # 3. GitHub Actions com captura expandida (150 linhas finais do log)
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
     os.makedirs(workflow_dir, exist_ok=True)
@@ -135,7 +135,7 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        buildozer -v android debug || (echo "=== ERRO ENCONTRADO NO BUILD ===" && tail -n 100 .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
+        buildozer -v android debug || (echo "=== ERRO EXPANDIDO DO BUILD ===" && tail -n 150 .buildozer/android/platform/build-*.log 2>/dev/null || true && exit 1)
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
@@ -156,17 +156,16 @@ jobs:
 
     # 5. Envio das alterações
     run_cmd("git add .")
-    run_cmd('git commit -m "Corrigindo versao do pip e setuptools para compatibilidade do buildozer" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Atualizando extrator de log para 150 linhas" || echo "Nada para commitar"')
     
-    print("🚀 Enviando código corrigido para o GitHub...")
+    print("🚀 Enviando código para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Tudo enviado! Aguardando 12 segundos para o GitHub registrar o build...")
+    print("🎯 Tudo enviado! Aguardando o GitHub iniciar o build...")
     print("="*40)
     
-    # Pausa estendida para garantir que o GitHub Actions inicie a execução
     time.sleep(12)
     os.system("gh run watch")
 
