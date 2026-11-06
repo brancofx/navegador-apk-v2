@@ -53,8 +53,8 @@ jobs:
       env:
         HOME: ${{ github.workspace }}
       run: |
-        # Aceita automaticamente os prompts do Buildozer/SDK usando yes
-        yes | buildozer -v android debug
+        # Tenta compilar com modo debug ativado para vermos o erro exato no log
+        buildozer -v --debug android debug || (echo "=== ERRO ENCONTRADO ===" && exit 1)
 
     - name: Salvar APK Gerado
       uses: actions/upload-artifact@v4
