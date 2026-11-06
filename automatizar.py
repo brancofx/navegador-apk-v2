@@ -73,7 +73,7 @@ warn_on_root = 1
 """)
     print("✔ Arquivo buildozer.spec configurado com sucesso!")
 
-    # 3. GitHub Actions com correção de dependências Python (Fix para o erro do pip)
+    # 3. GitHub Actions com correção de dependências Python
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
     os.makedirs(workflow_dir, exist_ok=True)
@@ -143,7 +143,7 @@ jobs:
         name: meu-aplicativo-apk
         path: bin/*.apk
 """)
-    print("✔ Configuração do GitHub Actions atualizada com correção do pip!")
+    print("✔ Configuração do GitHub Actions atualizada!")
 
     # 4. Git e Repositório
     if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
@@ -163,10 +163,11 @@ jobs:
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Tudo enviado! Aguardando o GitHub iniciar o build corrigido...")
+    print("🎯 Tudo enviado! Aguardando 12 segundos para o GitHub registrar o build...")
     print("="*40)
     
-    time.sleep(5)
+    # Pausa estendida para garantir que o GitHub Actions inicie a execução
+    time.sleep(12)
     os.system("gh run watch")
 
 if __name__ == "__main__":
