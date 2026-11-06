@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Set up Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -27,7 +27,7 @@ jobs:
         sudo dpkg --add-architecture i386
         sudo apt-get update
         sudo apt-get install -y \
-          build-arg \
+          build-essential \
           git \
           zip \
           unzip \
