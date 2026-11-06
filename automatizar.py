@@ -36,7 +36,7 @@ def processar_arquivos_zip():
             print(f"⚠️ Erro ao descompactar o arquivo {arquivo_zip}: {e}")
 
 def main():
-    print("🚀 Iniciando automação com rastreamento inteligente de erros...")
+    print("🚀 Iniciando automação com correção para o erro do pip...")
     
     if not os.path.exists(PROJECT_DIR):
         os.makedirs(PROJECT_DIR, exist_ok=True)
@@ -44,12 +44,12 @@ def main():
 
     os.chdir(PROJECT_DIR)
 
-    # 1. Identificar, ler e descompactar arquivos ZIP automaticamente
+    # 1. Identificar e descompactar arquivos ZIP
     processar_arquivos_zip()
 
-    # 2. Configurar o buildozer.spec flexível
+    # 2. Configurar o buildozer.spec
     spec_path = os.path.join(PROJECT_DIR, "buildozer.spec")
-    print("📦 Atualizando/Criando arquivo buildozer.spec flexível...")
+    print("📦 Atualizando/Criando arquivo buildozer.spec...")
     with open(spec_path, "w", encoding="utf-8") as f:
         f.write("""[app]
 title = Navegador
@@ -73,7 +73,7 @@ warn_on_root = 1
 """)
     print("✔ Arquivo buildozer.spec configurado com sucesso!")
 
-    # 3. GitHub Actions configurado para extrair e imprimir o erro exato no log final
+    # 3. GitHub Actions com correção de dependências Python (Fix para o erro do pip)
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
     os.makedirs(workflow_dir, exist_ok=True)
@@ -124,10 +124,11 @@ jobs:
           libffi-dev \\
           libssl-dev
 
-    - name: Instalar Buildozer e Dependências Python
+    - name: Instalar Buildozer e Dependências Python Corrigidas
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade cython virtualenv
+        pip install --upgrade "setuptools<=68.2.2" "pip<24.0"
         pip install --upgrade buildozer
 
     - name: Compilar APK com Buildozer
@@ -142,7 +143,7 @@ jobs:
         name: meu-aplicativo-apk
         path: bin/*.apk
 """)
-    print("✔ Configuração do GitHub Actions atualizada com filtro de erros!")
+    print("✔ Configuração do GitHub Actions atualizada com correção do pip!")
 
     # 4. Git e Repositório
     if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
@@ -155,14 +156,14 @@ jobs:
 
     # 5. Envio das alterações
     run_cmd("git add .")
-    run_cmd('git commit -m "Atualizacao com extrator de log de erro" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Corrigindo versao do pip e setuptools para compatibilidade do buildozer" || echo "Nada para commitar"')
     
-    print("🚀 Enviando código atualizado para o GitHub...")
+    print("🚀 Enviando código corrigido para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 Tudo enviado! Aguardando o GitHub iniciar o build...")
+    print("🎯 Tudo enviado! Aguardando o GitHub iniciar o build corrigido...")
     print("="*40)
     
     time.sleep(5)
