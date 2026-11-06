@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste local • PyBrowser</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;background:#0e1725;color:#eef5ff;font:16px system-ui,sans-serif;padding:24px}
+  main{max-width:540px;margin:auto;background:#18263a;border:1px solid #30425a;border-radius:18px;padding:24px}
+  small{color:#72e8c9;font-weight:700;letter-spacing:.14em} h1{margin:12px 0} p{color:#bfcede;line-height:1.5}
+  label,input,button{display:block;width:100%} input,button{font:inherit;border-radius:10px;padding:12px;margin-top:8px}
+  input{border:1px solid #637892;background:#0e1725;color:white} button{border:0;background:#72e8c9;color:#112924;font-weight:700;margin-top:14px}
+  output{display:block;min-height:24px;margin-top:16px;color:#72e8c9}
+</style>
+<main>
+  <small>TESTE LOCAL</small>
+  <h1>Formulário de exemplo</h1>
+  <p>Preencha manualmente ou execute o exemplo Python para preencher e enviar pelo navegador.</p>
+  <form id="formulario">
+    <label for="nome">Nome</label>
+    <input id="nome" name="nome" required>
+    <button id="enviar">Enviar</button>
+  </form>
+  <output id="resultado" role="status"></output>
+</main>
+<script>
+  document.querySelector("form").addEventListener("submit", event => {
+    event.preventDefault();
+    document.querySelector("#resultado").textContent =
+      "Olá, " + document.querySelector("#nome").value + "!";
+  });
+</script>
+</html>

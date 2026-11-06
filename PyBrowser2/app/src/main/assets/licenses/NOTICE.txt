@@ -1,0 +1,5 @@
+Apache-2.0 components:
+AndroidX (Compose, Core, WebKit, Work, Activity) - Android Open Source Project.
+WireGuard Android tunnel (WireGuard LLC).
+Kotlin standard library, coroutines and JetBrains annotations (JetBrains).
+Chaquopy (Python for Android) - see Chaquopy.txt. Python - see Python.txt. OpenSSL - see OpenSSL.txt.

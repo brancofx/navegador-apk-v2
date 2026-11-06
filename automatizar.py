@@ -1,4 +1,5 @@
 import os
+import zipfile
 import subprocess
 import sys
 
@@ -15,8 +16,27 @@ def run_cmd(command, cwd=PROJECT_DIR):
             print(result.stdout.strip())
     return result.returncode == 0
 
+def processar_arquivos_zip():
+    print("🔍 Procurando arquivos ZIP na pasta do projeto...")
+    arquivos_zip = [f for f in os.listdir(PROJECT_DIR) if f.endswith('.zip')]
+    
+    if not arquivos_zip:
+        print("ℹ️ Nenhum arquivo ZIP novo encontrado. Usando os arquivos já presentes na pasta.")
+        return
+
+    for arquivo_zip in arquivos_zip:
+        caminho_zip = os.path.join(PROJECT_DIR, arquivo_zip)
+        print(f"📦 Encontrado o arquivo ZIP: {arquivo_zip}. Lendo e descompactando...")
+        
+        try:
+            with zipfile.ZipFile(caminho_zip, 'r') as zip_ref:
+                zip_ref.extractall(PROJECT_DIR)
+                print(f"✔ Sucesso ao descompactar {arquivo_zip}!")
+        except Exception as e:
+            print(f"⚠️ Erro ao descompactar o arquivo {arquivo_zip}: {e}")
+
 def main():
-    print("🚀 Iniciando automação completa para o projeto Android...")
+    print("🚀 Iniciando automação inteligente do projeto Android...")
     
     if not os.path.exists(PROJECT_DIR):
         os.makedirs(PROJECT_DIR, exist_ok=True)
@@ -24,7 +44,10 @@ def main():
 
     os.chdir(PROJECT_DIR)
 
-    # 1. Verificar se o buildozer.spec existe, senão criar um básico
+    # 1. Identificar, ler e descompactar arquivos ZIP automaticamente
+    processar_arquivos_zip()
+
+    # 2. Garantir a existência do buildozer.spec
     spec_path = os.path.join(PROJECT_DIR, "buildozer.spec")
     if not os.path.exists(spec_path):
         print("📦 Criando arquivo buildozer.spec padrão...")
@@ -43,12 +66,12 @@ android.permissions = INTERNET
 """)
         print("✔ Arquivo buildozer.spec criado com sucesso!")
 
-    # 2. Verificar se o workflow do GitHub Actions existe
+    # 3. Garantir a existência do workflow do GitHub Actions
     workflow_dir = os.path.join(PROJECT_DIR, ".github", "workflows")
     workflow_path = os.path.join(workflow_dir, "build.yml")
     if not os.path.exists(workflow_path):
         os.makedirs(workflow_dir, exist_ok=True)
-        print("📦 Criando configuração do GitHub Actions...")
+        print("📦 Criando configuração otimizada do GitHub Actions...")
         with open(workflow_path, "w", encoding="utf-8") as f:
             f.write("""name: Compilar APK Android
 
@@ -78,21 +101,21 @@ jobs:
       run: |
         sudo dpkg --add-architecture i386
         sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          zip \
-          unzip \
-          wget \
-          curl \
-          autoconf \
-          libtool \
-          pkg-config \
-          zlib1g-dev \
-          libncurses5:i386 \
-          libstdc++6:i386 \
-          libz1:i386 \
-          libffi-dev \
+        sudo apt-get install -y \\
+          build-essential \\
+          git \\
+          zip \\
+          unzip \\
+          wget \\
+          curl \\
+          autoconf \\
+          libtool \\
+          pkg-config \\
+          zlib1g-dev \\
+          libncurses5:i386 \\
+          libstdc++6:i386 \\
+          libz1:i386 \\
+          libffi-dev \\
           libssl-dev
 
     - name: Instalar Buildozer e Dependências Python
@@ -115,44 +138,34 @@ jobs:
 """)
         print("✔ Configuração do GitHub Actions criada com sucesso!")
 
-    # 3. Inicializar Git localmente se necessário
+    # 4. Inicializar Git e configurar repositório remoto
     if not os.path.exists(os.path.join(PROJECT_DIR, ".git")):
         run_cmd("git init")
         run_cmd("git branch -M main")
 
-    # 4. Criar repositório no GitHub via GH CLI se não existir
-    print("🌐 Verificando repositório no GitHub...")
-    repo_check = subprocess.run(f"gh repo view brancofx/{REPO_NAME}", shell=True, capture_output=True)
-    if repo_check.returncode != 0:
-        print(f"📦 Criando repositório remoto '{REPO_NAME}'...")
-        run_cmd(f"gh repo create {REPO_NAME} --public --source=. --remote=origin")
-    else:
-        print("✔ Repositório remoto já existe. Vinculando...")
-        run_cmd(f"git remote remove origin 2>/dev/null || true")
-        run_cmd(f"git remote add origin https://github.com/brancofx/{REPO_NAME}.git")
+    print("🌐 Configurando repositório no GitHub...")
+    run_cmd(f"git remote remove origin 2>/dev/null || true")
+    run_cmd(f"git remote add origin https://github.com/brancofx/{REPO_NAME}.git")
 
-    # 5. Commit e Push dos arquivos
+    # 5. Adicionar, commitar e enviar arquivos
     run_cmd("git add .")
-    run_cmd('git commit -m "Atualizacao automatica do projeto via script Python" || echo "Nada para commitar"')
+    run_cmd('git commit -m "Automacao completa via script Python com leitura de ZIP" || echo "Nada para commitar"')
     
     print("🚀 Enviando código para o GitHub...")
     if not run_cmd("git push -u origin main --force"):
         run_cmd("git push -u origin master --force")
 
     print("\n" + "="*40)
-    print("🎯 O que você deseja fazer agora?")
-    print("1. Apenas publicar o código no GitHub")
-    print("2. Publicar e ACOMPANHAR a geração do APK na nuvem (GitHub Actions)")
+    print("🎯 Processo finalizado!")
+    print("Deseja acompanhar a compilação do APK na nuvem agora?")
     print("="*40)
     
-    opcao = input("Digite o número da sua escolha (1 ou 2): ").strip()
-    
-    if opcao == "2":
+    opcao = input("Acompanhar build no GitHub Actions? (s/n): ").strip().lower()
+    if opcao == 's':
         print("\n⏳ Abrindo monitoramento do GitHub Actions...")
-        print("Dica: Pressione Ctrl+C para sair do monitoramento a qualquer momento.")
         os.system("gh run watch")
     else:
-        print("\n✔ Processo concluído! Código publicado com sucesso no GitHub.")
+        print("\n✔ Tudo pronto! Você pode acompanhar o progresso no GitHub a qualquer momento.")
 
 if __name__ == "__main__":
     main()
